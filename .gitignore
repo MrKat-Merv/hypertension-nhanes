@@ -1,0 +1,18 @@
+# R
+.Rhistory
+.RData
+.Rproj.user/
+*_cache/
+*_files/
+
+# Data: downloaded or produced by the scripts
+data/raw/
+data/clean/
+*.xpt
+*.XPT
+*.rds
+
+.vscode/
+.idea/
+*.swp
+.DS_Store
