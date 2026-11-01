@@ -50,5 +50,7 @@ Data files are not committed; `R/01-download.R` fetches them.
 
 | Member | Role |
 |---|---|
-| Merveilles | |
-| | |
+| Merveilles Katumba |Data Scientist |
+| Uma Bhattacharjee |Scribe |
+| Vedant Saxena |Project Lead and Communication Liaison|
+|Raiyan Arian|Data Architect|
