@@ -1,0 +1,17 @@
+{
+  "(Intercept)": -3.8022,
+  "RIDAGEYR": 0.0436,
+  "BMXBMI": 0.0445,
+  "smoking_statusFormer": -0.0559,
+  "smoking_statusCurrent": 0.1745,
+  "activity_levelModerate": 0.0969,
+  "activity_levelHigh": -0.1096,
+  "race_ethnicityNon-Hispanic Asian": 0.4193,
+  "race_ethnicityNon-Hispanic Black": 0.4831,
+  "race_ethnicityNon-Hispanic White": -0.0379,
+  "race_ethnicityOther Hispanic": 0.079,
+  "race_ethnicityOther/Multi-Racial": 0.1577,
+  "income_group2-4x poverty line": -0.054,
+  "income_group4x+ poverty line": -0.2917,
+  "income_groupBelow poverty line": -0.2738
+}
