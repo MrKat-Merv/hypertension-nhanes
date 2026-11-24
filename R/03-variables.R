@@ -131,3 +131,4 @@ table(nhanes_adults$age_group, useNA = "always")
 # 7. Save the finished analytic dataset
 
 saveRDS(nhanes_adults, "data/clean/nhanes_adults_clean.rds")
+

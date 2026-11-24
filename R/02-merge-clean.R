@@ -15,6 +15,7 @@
 # We considered this to be messier missingness to handle later.
 # Expected output: since demo X bpx alone already dropped from 9,254 to 8,704 rows.
 # We should expect nhanes_merged row count to land somewhere in the 5,500 - 8,500 range.
+library(ggplot2)
 
 nhanes_merged <- demo %>%
   inner_join(bpx, by = "SEQN") %>%
@@ -72,13 +73,13 @@ dim(nhanes_adults)
 
 key_cols <- c("RIDAGEYR", "RIAGENDR", "BMXBMI", "SMQ020", "SMD030", "SMQ040", "PAQ650", "PAQ665", "RIDRETH3", "INDFMPIR", "BPXSY2", "BPXSY3", "BPXSY4")
 
-missigness <- nhanes_adults %>%
+missingness <- nhanes_adults %>%
   select(all_of(key_cols)) %>%
   summarise(across(everything(), ~ sum(is.na(.)))) %>%
   tidyr::pivot_longer(everything(), names_to = "variable", values_to = "n_missing") %>%
   dplyr::arrange(desc(n_missing))
 
-missigness
+missingness
 
 # 5. Duplicate check
 # What this means?: SEQN is defined as a unique ID
@@ -104,6 +105,73 @@ implausible_bmi <- nhanes_adults %>% filter(BMXBMI < 10 | BMXBMI > 80) %>% nrow(
 
 c(implausible_bp = implausible_bp, implausible_age = implausible_age, implausible_bmi = implausible_bmi)
 
+# create the folder.
+# recursive = TRUE creates output/ too if it doesn't exist yet.
+
+dir.create("output/figures", recursive = TRUE, showWarnings = FALSE)
+
+# Turn "step" into an ordered factor so the bars keep merge order
+# (otherwise R sorts them alphabetically)
+join_loss$step <- factor(join_loss$step, levels = join_loss$step)
+
+p_join <- ggplot(join_loss, aes(x = step, y = n)) +
+  geom_col(fill = "#2F8F7F") +
+  geom_text(aes(label = n), vjust = -0.4) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(title = "People remaining after each merge step",
+       x = NULL, y = "Number of people") +
+  theme_minimal()
+
+ggsave("output/figures/02-join-loss.png", p_join, width = 7, height = 4.5, dpi = 150)
+p_join
+
+
+missingness$pct <- missingness$n_missing / nrow(nhanes_adults) * 100
+
+p_miss <- ggplot(missingness, aes(x = reorder(variable, pct), y = pct)) +
+  geom_col(fill = "#E1A657") +
+  coord_flip() +
+  geom_text(aes(label = paste0(round(pct, 1), "%")), hjust = -0.1) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(title = "Missing values by variable",
+       x = NULL, y = "Percent of people missing") +
+  theme_minimal()
+
+ggsave("output/figures/02-missingness.png", p_miss, width = 7, height = 5, dpi = 150)
+p_miss
+
+
+save_hist <- function(data, column, title, xlab, file, bins = 30) {
+  p <- ggplot(data, aes(x = .data[[column]])) +
+    geom_histogram(bins = bins, fill = "#13233A", colour = "white") +
+    labs(title = title, x = xlab, y = "Number of people") +
+    theme_minimal()
+  ggsave(file.path("output", "figures", file), p, width = 7, height = 4.5, dpi = 150)
+  p
+}
+
+save_hist(nhanes_adults, "RIDAGEYR", "Age of adults in the sample",
+          "Age (years)", "02-hist-age.png")
+save_hist(nhanes_adults, "BMXBMI", "Body mass index (BMI)",
+          "BMI", "02-hist-bmi.png", bins = 40)
+save_hist(nhanes_adults, "BPXSY2", "Systolic blood pressure, reading 2",
+          "Systolic pressure (mmHg)", "02-hist-systolic.png")
+save_hist(nhanes_adults, "BPXDI2", "Diastolic blood pressure, reading 2",
+          "Diastolic pressure (mmHg)", "02-hist-diastolic.png")
+save_hist(nhanes_adults, "INDFMPIR", "Income-to-poverty ratio",
+          "Household income / poverty line", "02-hist-income.png")
+
+
+p_bp <- ggplot(nhanes_adults, aes(x = BPXSY2, y = BPXDI2)) +
+  geom_point(alpha = 0.25, colour = "#13233A") +
+  geom_abline(slope = 1, intercept = 0, colour = "red", linetype = "dashed") +
+  labs(title = "Diastolic vs systolic pressure (reading 2)",
+       subtitle = "Every point should lie below the red line",
+       x = "Systolic (mmHg)", y = "Diastolic (mmHg)") +
+  theme_minimal()
+
+ggsave("output/figures/02-scatter-bp.png", p_bp, width = 7, height = 5, dpi = 150)
+p_bp
 
 # Save the merged, adult-restricted dataset
 # Why save here, before variable construction(Task3)?: This is a natural checkpoint
@@ -112,3 +180,4 @@ c(implausible_bp = implausible_bp, implausible_age = implausible_age, implausibl
 # Task 3 will start from this exact point.
 
 saveRDS(nhanes_adults, "data/clean/nhanes_adults_merged.rds")
+

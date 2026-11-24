@@ -62,14 +62,16 @@ The analysis is restricted to respondents aged 18 and over (`RIDAGEYR >= 18`).
 dim(nhanes_adults) = 5,533. 
 Note: the five-table merge already
 gives 5,533 rows, so the adult filter may remove few or no further people
-(the smoking and activity questionnaires are only asked of adults). This is due
-the fact that we used inner_join() so it filter even before we did.
+(the smoking and activity questionnaires are only asked of adults).
+Using inner_join() already has a filter effect. By keeping only 
+people who completed all questionnaire. 
+This may also be in certain cases a negative effect.
 
 ## 4. Missing values
 
 Counts of missing values (`NA`) in the variables the analysis depends on.
-Percentages assume the 5,533 people above; adjust if `dim(nhanes_adults)`
-differs.
+`dim(nhanes_adults)` = 5,533
+Percentages is based on the 5,533 people above.
 
 | Variable | Meaning | Missing | % of people | Verdict |
 |---|---|---:|---:|---|
@@ -86,6 +88,8 @@ differs.
 | `PAQ650` | Vigorous recreational activity? | 0 | 0% | Complete |
 | `PAQ665` | Moderate recreational activity? | 0 | 0% | Complete |
 | `RIDRETH3` | Race/ethnicity | 0 | 0% | Complete |
+
+![Missing values by variable](../output/figures/02-missingness.png)
 
 **Expected missingness (explained by how the survey works):**
 - `BPXSY4`: a fourth reading is only taken when earlier readings were
@@ -127,10 +131,11 @@ appears exactly once, so the joins did not create repeated rows.
 Blood pressure and age passed with zero violations. **Two people have a
 BMI outside 10–80.**
 
-I have inspected the two people failing the check of bmi using these commands
+We have inspected the two people failing the check of bmi using these commands
 `bmi_outside_10_80 <- nhanes_adults %>% filter(BMXBMI < 10 | BMXBMI > 80) %>% select(SEQN, RIDAGEYR, BMXBMI)`
 `knitr::kable(bmi_outside_10_80, format = "markdown")`
-Anyway 2 out of 5,533 is negligible therefore can be left.
+below are the two people who failed the BMI plausible check 
+(we have considered the physically real range of BMI to ]10,80[.)
 
 |   SEQN| RIDAGEYR| BMXBMI|
 |------:|--------:|------:|
