@@ -127,6 +127,11 @@ appears exactly once, so the joins did not create repeated rows.
 | Blood pressure | Diastolic ≥ systolic (2nd reading) | 0 |
 | Age | Under 18 or over 110 | 0 |
 | BMI | Under 10 or over 80 | **2** |
+| Diastolic reading of 0 | `BPXDI2`, `BPXDI3` or `BPXDI4` equals 0 | 25 in reading 2; 33 people in any reading |
+
+The diastolic histogram and scatter plot show a small group of people with a diastolic reading of 0 mmHg, which is not a physically real value. 
+In total 33 people have at least one zero (25 in reading 2, 20 in reading 3, 7 in reading 4), and none are among the 315 people removed for having no valid reading. 
+These readings stay in the data. Their effect on the outcome is measured in `R/03-variables.R` and described in `docs/decisions.md`.
 
 Blood pressure and age passed with zero violations. **Two people have a
 BMI outside 10–80.**

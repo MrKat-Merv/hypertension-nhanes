@@ -230,6 +230,22 @@ groups, so it is written down here.
 
 ---
 
+## 7. Diastolic readings of 0
+
+**Finding:** 33 people (0.6% of the 5,218) have at least one diastolic reading of 0 mmHg, 
+which is not physically real (see `docs/data-quality-log.md`). 
+In total there are 52 such readings.
+
+**Check:** we recomputed each person's average diastolic pressure with zero readings treated as missing and re-derived the High/Low label. 
+
+**No label changed (0 of 5,218).** Six people have only zero diastolic readings, so their label depends on systolic pressure alone.
+
+**Decision:** keep the readings as they are. Because the outcome is "systolic ≥ 130 or diastolic ≥ 80", 
+a zero can only lower a person's average diastolic pressure, and in this sample it never changed whether someone crossed either threshold.
+
+**Limit:** this holds for this dataset only, and the six people whose label rests on systolic pressure alone cannot be checked against diastolic pressure. 
+The report's limitations section repeats this.
+
 ## Summary of the final dataset
 
 - **5,218 adults** with a usable blood pressure (from 5,533 after the
