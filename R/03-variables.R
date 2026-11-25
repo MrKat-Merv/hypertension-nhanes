@@ -44,6 +44,23 @@ nhanes_adults <- nhanes_adults %>% filter(!is.nan(avg_systolic))
 # this exact survey cycle (about 45%).
 table(nhanes_adults$hypertension)
 
+# Check: what if diastolic readings of 0 were treated as missing?
+zero_check <- nhanes_adults %>%
+  rowwise() %>%
+  mutate(
+    alt_diastolic = mean(c(na_if(BPXDI2, 0), na_if(BPXDI3, 0), na_if(BPXDI4, 0)),
+                         na.rm = TRUE),
+    alt_label = if_else(avg_systolic >= 130 | alt_diastolic >= 80, "High", "Low")
+  ) %>%
+  ungroup()
+
+c(
+  people_with_a_zero  = sum(zero_check$BPXDI2 == 0 | zero_check$BPXDI3 == 0 |
+                              zero_check$BPXDI4 == 0, na.rm = TRUE),
+  labels_changed      = sum(zero_check$alt_label != zero_check$hypertension, na.rm = TRUE),
+  would_be_unlabelled = sum(is.na(zero_check$alt_label))
+)
+
 # 2. Smoking status
 # Why this specific logic:`SMQ020` asks "have you smoked 100+
 # cigarettes in your life" (1=Yes, 2=No). `SMQ040` (only asked if

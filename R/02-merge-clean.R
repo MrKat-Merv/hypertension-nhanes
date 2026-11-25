@@ -105,6 +105,16 @@ implausible_bmi <- nhanes_adults %>% filter(BMXBMI < 10 | BMXBMI > 80) %>% nrow(
 
 c(implausible_bp = implausible_bp, implausible_age = implausible_age, implausible_bmi = implausible_bmi)
 
+# Diastolic readings of 0 are not physically real
+zero_dia <- nhanes_adults %>%
+  summarise(
+    reading2 = sum(BPXDI2 == 0, na.rm = TRUE),
+    reading3 = sum(BPXDI3 == 0, na.rm = TRUE),
+    reading4 = sum(BPXDI4 == 0, na.rm = TRUE),
+    any_reading = sum(BPXDI2 == 0 | BPXDI3 == 0 | BPXDI4 == 0, na.rm = TRUE)
+  )
+zero_dia
+
 # create the folder.
 # recursive = TRUE creates output/ too if it doesn't exist yet.
 
