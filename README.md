@@ -88,6 +88,20 @@ The analysis is unweighted (it describes this sample, not official national esti
 
 Survey weights for national estimates, a "Not reported" income group and multiple imputation for missing income, blood pressure medication, and comparison with later NHANES cycles.
 
+
+## AI use disclosure
+
+Merveilles Katumba used Claude Code (Anthropic's AI assistant) throughout this project, for:
+
+- checking code syntax and fixing errors
+- explaining concepts and R syntax (logistic regression, odds ratios, data leakage, missing values)
+- step-by-step guidance for each task.
+- drafting written material: `reports/report.Rmd`, this README, `docs/data-quality-log.md`, `docs/decisions.md` and the pull request descriptions
+
+Every line of code in `R/` was written and run by Merveilles himself, not pasted from an AI tool. He ran every script, checked the outputs against the CDC codebook, and found and fixed problems along the way, such as the missing-BMI bug that produced an `NA` accuracy. The drafted documents were reviewed and edited by him before being committed, and the numbers in them come from his own script outputs.
+
+The research question, the choice of NHANES over the Kaggle dataset, and the decisions about how to define and handle the variables were the team's and are recorded in `docs/decisions.md`.
+
 ## Team
 
 | Member | Role |
