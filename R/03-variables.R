@@ -15,6 +15,7 @@
 # Output meaning: anyone with zero valid readings gets NaN from the `mean(...,na.rm=TRUE)`
 # not NA. 
 # Reminder in R: NA has a different meaning, it is not "missing"
+library(ggplot2)
 library(dplyr)
 nhanes_adults <- readRDS("data/clean/nhanes_adults_merged.rds")
 
@@ -127,6 +128,26 @@ nhanes_adults <- nhanes_adults %>%
     right = FALSE))
 
 table(nhanes_adults$age_group, useNA = "always")
+
+# Graphs go in output/figures/, prefixed 03- for this script
+dir.create("output/figures", recursive = TRUE, showWarnings = FALSE)
+
+outcome_counts <- nhanes_adults %>%
+  count(hypertension) %>%
+  mutate(pct = n / sum(n) * 100)
+
+p_outcome <- ggplot(outcome_counts, aes(x = hypertension, y = n, fill = hypertension)) +
+  geom_col(show.legend = FALSE) +
+  geom_text(aes(label = paste0(n, " (", round(pct, 1), "%)")), vjust = -0.4) +
+  scale_fill_manual(values = c(High = "#E1A657", Low = "#2F8F7F")) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.12))) +
+  labs(title = "Blood pressure outcome in the final sample",
+       x = NULL, y = "Number of people") +
+  theme_minimal()
+
+ggsave("output/figures/03-outcome-split.png", p_outcome,
+       width = 6, height = 4.5, dpi = 150)
+p_outcome
 
 # 7. Save the finished analytic dataset
 
