@@ -2,6 +2,7 @@
 # with hypertension, then test whether they translate into a working
 # prediction that beats a no-information baseline.
 
+library(ggplot2)
 library(dplyr)
 nhanes_adults <- readRDS("data/clean/nhanes_adults_clean.rds")        # Start by loading Task 3's checkpoint
 
@@ -156,6 +157,95 @@ confusion_matrix
 
 accuracy <- mean(test$pred_class == test$hypertension_bin)
 accuracy
+
+
+#dir.create("output", showWarnings = FALSE)
+
+# Graph 1: hypertension rate by group (five charts, one function)
+
+dir.create("output/figures", recursive = TRUE, showWarnings = FALSE)
+
+overall_rate <- mean(nhanes_adults$hypertension == "High") * 100
+
+plot_rates <- function(rate_table, group_col, title, file, by_rate = TRUE) {
+  rate_table$group <- as.character(rate_table[[group_col]])
+  if (by_rate) {
+    rate_table$group <- reorder(rate_table$group, rate_table$high_risk_pct)
+  } else {
+    rate_table$group <- factor(rate_table$group, levels = levels(rate_table[[group_col]]))
+  }
+  
+  p <- ggplot(rate_table, aes(x = group, y = high_risk_pct)) +
+    geom_col(fill = "#2F8F7F") +
+    geom_hline(yintercept = overall_rate, linetype = "dashed", colour = "red") +
+    geom_label(aes(label = paste0(sprintf("%.1f", high_risk_pct), "%  (n = ", n, ")")),
+               hjust = -0.05, fill = "white", linewidth = 0) +
+    coord_flip() +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.3))) +
+    labs(title = title,
+         subtitle = "Dashed line = overall rate (44.6%)",
+         x = NULL, y = "Percent with high blood pressure") +
+    theme_minimal()
+  
+  ggsave(file.path("output", "figures", file), p, width = 7.5, height = 4.5, dpi = 150)
+  p
+}
+
+plot_rates(by_race, "race_ethnicity", "High blood pressure by race/ethnicity", "04-rate-race.png")
+plot_rates(by_income, "income_group", "High blood pressure by income group", "04-rate-income.png")
+plot_rates(by_age, "age_group", "High blood pressure by age group", "04-rate-age.png", by_rate = FALSE)
+plot_rates(by_smoking, "smoking_status", "High blood pressure by smoking status", "04-rate-smoking.png")
+plot_rates(by_activity, "activity_level", "High blood pressure by activity level", "04-rate-activity.png")
+
+# Graph 2: odds ratios with confidence intervals
+
+or_data <- model_odds_ratios %>% filter(term != "(Intercept)")
+
+p_or <- ggplot(or_data, aes(x = estimate, y = reorder(term, estimate))) +
+  geom_vline(xintercept = 1, linetype = "dashed", colour = "red") +
+  geom_pointrange(aes(xmin = conf.low, xmax = conf.high), colour = "#13233A") +
+  scale_x_log10() +
+  labs(title = "Odds ratios from the logistic regression",
+       subtitle = "If a line crosses 1, the effect is not statistically distinguishable from no effect",
+       x = "Odds ratio (log scale; 1 = no effect)", y = NULL) +
+  theme_minimal()
+
+ggsave("output/figures/04-odds-ratios.png", p_or, width = 8, height = 5.5, dpi = 150)
+p_or
+
+# Graph 3: confusion matrix
+
+cm_df <- as.data.frame(confusion_matrix)
+
+p_cm <- ggplot(cm_df, aes(x = Actual, y = Predicted, fill = Freq)) +
+  geom_tile(colour = "white") +
+  geom_text(aes(label = Freq), size = 8) +
+  scale_fill_gradient(low = "#F7F8FA", high = "#2F8F7F") +
+  scale_x_discrete(labels = c("0" = "Actually Low", "1" = "Actually High")) +
+  scale_y_discrete(limits = rev, labels = c("0" = "Predicted Low", "1" = "Predicted High")) +
+  labs(title = "Predictions vs reality on the test set", x = NULL, y = NULL) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+ggsave("output/figures/04-confusion-matrix.png", p_cm, width = 6, height = 4.5, dpi = 150)
+p_cm
+
+# Graph 4: predicted probability for each true group
+
+test$actual_label <- if_else(test$hypertension_bin == 1, "Actually High", "Actually Low")
+
+p_prob <- ggplot(test, aes(x = pred_prob, fill = actual_label)) +
+  geom_histogram(bins = 30, colour = "white", show.legend = FALSE) +
+  geom_vline(xintercept = 0.5, linetype = "dashed") +
+  facet_wrap(~ actual_label, ncol = 1) +
+  scale_fill_manual(values = c("Actually High" = "#E1A657", "Actually Low" = "#2F8F7F")) +
+  labs(title = "Predicted probability of high blood pressure",
+       subtitle = "Dashed line = the 0.5 cutoff. The more the two groups overlap, the harder they are to separate.",
+       x = "Predicted probability", y = "Number of people") +
+  theme_minimal()
+
+ggsave("output/figures/04-predicted-probability.png", p_prob, width = 7, height = 6, dpi = 150)
+p_prob
 
 # Export results to `output/`
 
